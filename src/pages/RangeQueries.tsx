@@ -57,7 +57,7 @@ export default function RangeQueries() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          The C algorithm (range_queries.c) will be executed when Supabase backend is connected.
+          Demo mode: Showing simulated results of Segment Tree algorithm for efficient range queries.
         </AlertDescription>
       </Alert>
 
@@ -144,12 +144,9 @@ export default function RangeQueries() {
           <ChartArea 
             title="Range Query Visualization"
             description={`Highlighting range [${leftRange}, ${rightRange}] for ${queryType} operation`}
-          >
-            <div className="text-center py-12 text-muted-foreground">
-              <AreaChart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Range visualization will appear here</p>
-            </div>
-          </ChartArea>
+            data={stockData.map(item => ({ name: `Day ${item.day}`, value: item.price }))}
+            chartType="bar"
+          />
         </div>
       </div>
 

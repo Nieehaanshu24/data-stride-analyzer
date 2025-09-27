@@ -1,14 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts"
 
 interface ChartAreaProps {
   title: string
   description: string
   data?: any[]
   children?: React.ReactNode
+  chartType?: 'line' | 'bar' | 'dual'
+  dataKeys?: { primary?: string; secondary?: string }
 }
 
-export function ChartArea({ title, description, data, children }: ChartAreaProps) {
+export function ChartArea({ title, description, data, children, chartType = 'line', dataKeys = {} }: ChartAreaProps) {
   const defaultData = [
     { name: 'Day 1', value: 100 },
     { name: 'Day 2', value: 105 },
@@ -29,25 +31,71 @@ export function ChartArea({ title, description, data, children }: ChartAreaProps
         {children || (
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data || defaultData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                <YAxis stroke="hsl(var(--foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '6px'
-                  }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
+              {chartType === 'bar' ? (
+                <BarChart data={data || defaultData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                  <YAxis stroke="hsl(var(--foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} 
+                  />
+                  <Bar 
+                    dataKey={dataKeys.primary || "value"} 
+                    fill="hsl(var(--primary))" 
+                  />
+                </BarChart>
+              ) : chartType === 'dual' ? (
+                <LineChart data={data || defaultData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                  <YAxis stroke="hsl(var(--foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey={dataKeys.primary || "price"} 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey={dataKeys.secondary || "span"} 
+                    stroke="hsl(var(--chart-2))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              ) : (
+                <LineChart data={data || defaultData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
+                  <YAxis stroke="hsl(var(--foreground))" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey={dataKeys.primary || "value"} 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </div>
         )}

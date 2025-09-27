@@ -51,7 +51,7 @@ export default function StockSpan() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          The C algorithm (stock_span.c) will be executed when Supabase backend is connected.
+          Demo mode: Showing simulated results of Monotonic Stack algorithm for Stock Span calculation.
         </AlertDescription>
       </Alert>
 
@@ -98,12 +98,10 @@ export default function StockSpan() {
           <ChartArea 
             title="Stock Span Visualization"
             description="Stock prices and their corresponding span values"
-          >
-            <div className="text-center py-12 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Chart will display when calculation is complete</p>
-            </div>
-          </ChartArea>
+            data={chartData}
+            chartType="dual"
+            dataKeys={{ primary: "price", secondary: "span" }}
+          />
         </div>
       </div>
 

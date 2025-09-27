@@ -58,7 +58,7 @@ export default function SlidingWindow() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          The C algorithm (sliding_window.c) will be executed when Supabase backend is connected.
+          Demo mode: Showing simulated results of Deque-based algorithm for sliding window max/min.
         </AlertDescription>
       </Alert>
 
@@ -134,12 +134,9 @@ export default function SlidingWindow() {
           <ChartArea 
             title="Sliding Window Visualization"
             description={`${windowSize}-day sliding window ${operation} analysis`}
-          >
-            <div className="text-center py-12 text-muted-foreground">
-              <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Sliding window visualization will appear here</p>
-            </div>
-          </ChartArea>
+            data={stockData.map(item => ({ name: `Day ${item.day}`, value: item.price }))}
+            chartType="line"
+          />
         </div>
       </div>
 

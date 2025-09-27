@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Upload from "./pages/Upload";
+import Index from "./pages/Index";
 import StockSpan from "./pages/StockSpan";
 import RangeQueries from "./pages/RangeQueries";
 import SlidingWindow from "./pages/SlidingWindow";
@@ -20,7 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Upload />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/upload" element={<Upload />} />
             <Route path="/stock-span" element={<StockSpan />} />
             <Route path="/range-queries" element={<RangeQueries />} />
             <Route path="/sliding-window" element={<SlidingWindow />} />

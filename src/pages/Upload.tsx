@@ -47,7 +47,7 @@ export default function Upload() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          To process data with C algorithms and store in database, connect to Supabase first.
+          Demo mode: Using sample data for algorithm demonstrations. Real file processing would require backend integration.
         </AlertDescription>
       </Alert>
 
