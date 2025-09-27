@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Upload as UploadIcon, FileText, AlertCircle } from "lucide-react"
+import { Upload as UploadIcon, FileText, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,8 @@ import { DataTable } from "@/components/DataTable"
 export default function Upload() {
   const [csvData, setCsvData] = useState("")
   const [fileName, setFileName] = useState("")
+  const [processedData, setProcessedData] = useState<any[]>([])
+  const [isProcessed, setIsProcessed] = useState(false)
 
   const sampleData = [
     { date: "2024-01-01", price: 150.25, volume: 1000000 },
@@ -22,7 +24,9 @@ export default function Upload() {
     { date: "2024-01-05", price: 157.20, volume: 1150000 },
   ]
 
-  const chartData = sampleData.map((item, index) => ({
+  const displayData = processedData.length > 0 ? processedData : sampleData
+  
+  const chartData = displayData.map((item, index) => ({
     name: `Day ${index + 1}`,
     value: item.price
   }))
@@ -31,7 +35,51 @@ export default function Upload() {
     const file = event.target.files?.[0]
     if (file) {
       setFileName(file.name)
+      setIsProcessed(false)
       // In real implementation, would parse CSV here
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const text = e.target?.result as string
+        setCsvData(text)
+      }
+      reader.readAsText(file)
+    }
+  }
+
+  const parseCSVData = (data: string) => {
+    const lines = data.trim().split('\n')
+    if (lines.length < 2) return []
+    
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+    const dateIndex = headers.indexOf('date')
+    const priceIndex = headers.indexOf('price')
+    const volumeIndex = headers.indexOf('volume')
+    
+    if (dateIndex === -1 || priceIndex === -1 || volumeIndex === -1) {
+      return []
+    }
+    
+    return lines.slice(1).map(line => {
+      const values = line.split(',')
+      return {
+        date: values[dateIndex]?.trim(),
+        price: parseFloat(values[priceIndex]?.trim()),
+        volume: parseInt(values[volumeIndex]?.trim())
+      }
+    }).filter(item => item.date && !isNaN(item.price) && !isNaN(item.volume))
+  }
+
+  const handleProcessData = () => {
+    if (csvData.trim()) {
+      const parsed = parseCSVData(csvData)
+      if (parsed.length > 0) {
+        setProcessedData(parsed)
+        setIsProcessed(true)
+      }
+    } else {
+      // Use sample data if no input
+      setProcessedData(sampleData)
+      setIsProcessed(true)
     }
   }
 
@@ -84,8 +132,19 @@ export default function Upload() {
                   </p>
                 )}
               </div>
-              <Button className="w-full max-w-sm">
-                Process Data
+              <Button 
+                className="w-full max-w-sm" 
+                onClick={handleProcessData}
+                disabled={!fileName && !csvData.trim()}
+              >
+                {isProcessed ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Data Processed
+                  </>
+                ) : (
+                  "Process Data"
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -110,8 +169,18 @@ export default function Upload() {
                   rows={8}
                 />
               </div>
-              <Button>
-                Process Data
+              <Button 
+                onClick={handleProcessData}
+                disabled={!csvData.trim()}
+              >
+                {isProcessed ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Data Processed
+                  </>
+                ) : (
+                  "Process Data"
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -120,16 +189,16 @@ export default function Upload() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartArea 
-          title="Sample Stock Data"
-          description="Preview of uploaded stock prices"
+          title={isProcessed ? "Processed Stock Data" : "Sample Stock Data"}
+          description={isProcessed ? "Your uploaded stock prices" : "Preview of sample stock prices"}
           data={chartData}
         />
         
         <DataTable
           title="Data Summary"
-          description="First 5 rows of sample data"
+          description={isProcessed ? `${displayData.length} rows of processed data` : "Sample data preview"}
           headers={["Date", "Price ($)", "Volume"]}
-          data={sampleData}
+          data={displayData.slice(0, 10)}
         />
       </div>
     </div>
