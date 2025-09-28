@@ -10,28 +10,31 @@ import StockSpan from "./pages/StockSpan";
 import RangeQueries from "./pages/RangeQueries";
 import SlidingWindow from "./pages/SlidingWindow";
 import NotFound from "./pages/NotFound";
+import { DataProvider } from "./contexts/DataContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/stock-span" element={<StockSpan />} />
-            <Route path="/range-queries" element={<RangeQueries />} />
-            <Route path="/sliding-window" element={<SlidingWindow />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
+    <DataProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/stock-span" element={<StockSpan />} />
+              <Route path="/range-queries" element={<RangeQueries />} />
+              <Route path="/sliding-window" element={<SlidingWindow />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </TooltipProvider>
+    </DataProvider>
   </QueryClientProvider>
 );
 

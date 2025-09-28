@@ -9,12 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChartArea } from "@/components/ChartArea"
 import { DataTable } from "@/components/DataTable"
+import { useData } from "@/contexts/DataContext"
+import { toast } from "@/hooks/use-toast"
 
 export default function Upload() {
   const [csvData, setCsvData] = useState("")
   const [fileName, setFileName] = useState("")
-  const [processedData, setProcessedData] = useState<any[]>([])
+  const [localProcessedData, setLocalProcessedData] = useState<any[]>([])
   const [isProcessed, setIsProcessed] = useState(false)
+  const { setStockData, setIsDataLoaded, stockData } = useData()
 
   const sampleData = [
     { date: "2024-01-01", price: 150.25, volume: 1000000 },
@@ -24,7 +27,7 @@ export default function Upload() {
     { date: "2024-01-05", price: 157.20, volume: 1150000 },
   ]
 
-  const displayData = processedData.length > 0 ? processedData : sampleData
+  const displayData = localProcessedData.length > 0 ? localProcessedData : (stockData.length > 0 ? stockData : sampleData)
   
   const chartData = displayData.map((item, index) => ({
     name: `Day ${index + 1}`,
@@ -73,13 +76,31 @@ export default function Upload() {
     if (csvData.trim()) {
       const parsed = parseCSVData(csvData)
       if (parsed.length > 0) {
-        setProcessedData(parsed)
+        setLocalProcessedData(parsed)
+        setStockData(parsed)
+        setIsDataLoaded(true)
         setIsProcessed(true)
+        toast({
+          title: "Data processed successfully!",
+          description: `${parsed.length} rows of stock data are now available for analysis.`
+        })
+      } else {
+        toast({
+          title: "Error processing data",
+          description: "Please ensure your CSV has the correct format: Date, Price, Volume",
+          variant: "destructive"
+        })
       }
     } else {
       // Use sample data if no input
-      setProcessedData(sampleData)
+      setLocalProcessedData(sampleData)
+      setStockData(sampleData)
+      setIsDataLoaded(true)
       setIsProcessed(true)
+      toast({
+        title: "Using sample data",
+        description: "Sample stock data loaded for demonstration."
+      })
     }
   }
 
@@ -197,7 +218,7 @@ export default function Upload() {
         <DataTable
           title="Data Summary"
           description={isProcessed ? `${displayData.length} rows of processed data` : "Sample data preview"}
-          headers={["Date", "Price ($)", "Volume"]}
+          headers={["Date", "Price (₹)", "Volume"]}
           data={displayData.slice(0, 10)}
         />
       </div>

@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/sidebar"
 
 const items = [
-  { title: "Upload Data", url: "/", icon: Upload },
+  { title: "Dashboard", url: "/", icon: BarChart3 },
+  { title: "Upload Data", url: "/upload", icon: Upload },
   { title: "Stock Span", url: "/stock-span", icon: TrendingUp },
   { title: "Range Queries", url: "/range-queries", icon: AreaChart },
   { title: "Sliding Window", url: "/sliding-window", icon: Activity },

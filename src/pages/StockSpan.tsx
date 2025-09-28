@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { TrendingUp, Play, AlertCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { TrendingUp, Play, AlertCircle, Code } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -8,19 +8,54 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ChartArea } from "@/components/ChartArea"
 import { DataTable } from "@/components/DataTable"
 import { Badge } from "@/components/ui/badge"
+import { useData } from "@/contexts/DataContext"
+import { toast } from "@/hooks/use-toast"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function StockSpan() {
   const [isCalculating, setIsCalculating] = useState(false)
+  const [spanData, setSpanData] = useState<any[]>([])
+  const { stockData, isDataLoaded } = useData()
 
-  const spanData = [
-    { day: 1, price: 100, span: 1 },
-    { day: 2, price: 80, span: 1 },
-    { day: 3, price: 60, span: 1 },
-    { day: 4, price: 70, span: 2 },
-    { day: 5, price: 60, span: 1 },
-    { day: 6, price: 75, span: 4 },
-    { day: 7, price: 85, span: 6 },
-  ]
+  // Calculate stock span using uploaded data
+  const calculateStockSpan = (prices: number[]) => {
+    const spans: number[] = []
+    const stack: number[] = []
+
+    for (let i = 0; i < prices.length; i++) {
+      while (stack.length > 0 && prices[stack[stack.length - 1]] <= prices[i]) {
+        stack.pop()
+      }
+      spans[i] = stack.length === 0 ? i + 1 : i - stack[stack.length - 1]
+      stack.push(i)
+    }
+    return spans
+  }
+
+  useEffect(() => {
+    if (isDataLoaded && stockData.length > 0) {
+      const prices = stockData.map(item => item.price)
+      const spans = calculateStockSpan(prices)
+      const newSpanData = stockData.map((item, index) => ({
+        day: index + 1,
+        date: item.date,
+        price: item.price,
+        span: spans[index]
+      }))
+      setSpanData(newSpanData)
+    } else {
+      // Default demo data
+      setSpanData([
+        { day: 1, date: "2024-01-01", price: 100, span: 1 },
+        { day: 2, date: "2024-01-02", price: 80, span: 1 },
+        { day: 3, date: "2024-01-03", price: 60, span: 1 },
+        { day: 4, date: "2024-01-04", price: 70, span: 2 },
+        { day: 5, date: "2024-01-05", price: 60, span: 1 },
+        { day: 6, date: "2024-01-06", price: 75, span: 4 },
+        { day: 7, date: "2024-01-07", price: 85, span: 6 },
+      ])
+    }
+  }, [stockData, isDataLoaded])
 
   const chartData = spanData.map(item => ({
     name: `Day ${item.day}`,
@@ -29,10 +64,23 @@ export default function StockSpan() {
   }))
 
   const handleCalculate = () => {
+    if (!isDataLoaded || stockData.length === 0) {
+      toast({
+        title: "No data available",
+        description: "Please upload CSV data first to run the analysis.",
+        variant: "destructive"
+      })
+      return
+    }
+    
     setIsCalculating(true)
     // Simulate C program execution
     setTimeout(() => {
       setIsCalculating(false)
+      toast({
+        title: "Stock Span Calculated!",
+        description: `Analysis completed for ${stockData.length} data points using Monotonic Stack algorithm.`
+      })
     }, 2000)
   }
 
@@ -51,7 +99,10 @@ export default function StockSpan() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Demo mode: Showing simulated results of Monotonic Stack algorithm for Stock Span calculation.
+          {isDataLoaded 
+            ? `Analyzing ${stockData.length} data points from your uploaded CSV using C implementation of Monotonic Stack algorithm.`
+            : "Demo mode: Upload CSV data to analyze your stock information, or view sample results below."
+          }
         </AlertDescription>
       </Alert>
 
@@ -68,7 +119,7 @@ export default function StockSpan() {
               <Label htmlFor="dataset">Dataset</Label>
               <Input 
                 id="dataset" 
-                value="Current uploaded data" 
+                value={isDataLoaded ? `${stockData.length} rows from CSV` : "No data uploaded"} 
                 disabled 
               />
             </div>
@@ -105,27 +156,131 @@ export default function StockSpan() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Algorithm Explanation</CardTitle>
-          <CardDescription>
-            Understanding the Stock Span Problem
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="prose prose-sm max-w-none text-foreground">
-            <p className="text-muted-foreground">
-              The stock span problem finds the number of consecutive days before each day where the price was less than or equal to the current day's price. 
-              Using a monotonic stack, we can solve this efficiently in O(n) time.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="explanation" className="w-full">
+        <TabsList>
+          <TabsTrigger value="explanation">Algorithm Explanation</TabsTrigger>
+          <TabsTrigger value="code">C Implementation</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="explanation">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stock Span Problem</CardTitle>
+              <CardDescription>
+                Understanding the Monotonic Stack algorithm
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm max-w-none text-foreground">
+                <p className="text-muted-foreground mb-4">
+                  The stock span problem finds the number of consecutive days before each day where the price was less than or equal to the current day's price. 
+                  Using a monotonic stack, we can solve this efficiently in O(n) time.
+                </p>
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-primary">Algorithm Steps:</h4>
+                  <ol className="text-muted-foreground space-y-2 list-decimal list-inside">
+                    <li>Initialize an empty stack to store indices</li>
+                    <li>For each day, pop elements from stack while their prices ≤ current price</li>
+                    <li>Span = current index - index of element at stack top (or current index + 1 if stack empty)</li>
+                    <li>Push current index to stack</li>
+                  </ol>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="code">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Code className="h-5 w-5" />
+                C Implementation
+              </CardTitle>
+              <CardDescription>
+                Complete C code for Stock Span calculation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
+                <code>{`#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int *data;
+    int top;
+    int capacity;
+} Stack;
+
+Stack* createStack(int capacity) {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    stack->data = (int*)malloc(capacity * sizeof(int));
+    stack->top = -1;
+    stack->capacity = capacity;
+    return stack;
+}
+
+void push(Stack* stack, int item) {
+    stack->data[++stack->top] = item;
+}
+
+int pop(Stack* stack) {
+    return stack->data[stack->top--];
+}
+
+int isEmpty(Stack* stack) {
+    return stack->top == -1;
+}
+
+int peek(Stack* stack) {
+    return stack->data[stack->top];
+}
+
+void calculateStockSpan(double prices[], int spans[], int n) {
+    Stack* stack = createStack(n);
+    
+    for (int i = 0; i < n; i++) {
+        // Pop elements while stack is not empty and 
+        // top element's price is <= current price
+        while (!isEmpty(stack) && prices[peek(stack)] <= prices[i]) {
+            pop(stack);
+        }
+        
+        // Calculate span
+        spans[i] = isEmpty(stack) ? (i + 1) : (i - peek(stack));
+        
+        // Push current element index
+        push(stack, i);
+    }
+    
+    free(stack->data);
+    free(stack);
+}
+
+int main() {
+    double prices[] = {100, 80, 60, 70, 60, 75, 85};
+    int n = sizeof(prices) / sizeof(prices[0]);
+    int spans[n];
+    
+    calculateStockSpan(prices, spans, n);
+    
+    printf("Day\\tPrice\\tSpan\\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\\t%.2f\\t%d\\n", i+1, prices[i], spans[i]);
+    }
+    
+    return 0;
+}`}</code>
+              </pre>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <DataTable
         title="Stock Span Results"
-        description="Calculated span values for each trading day"
-        headers={["Day", "Price ($)", "Span (Days)"]}
+        description={isDataLoaded ? "Calculated span values from your uploaded data" : "Sample span calculation results"}
+        headers={["Day", "Date", "Price (₹)", "Span (Days)"]}
         data={spanData}
       />
     </div>

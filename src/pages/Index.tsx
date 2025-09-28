@@ -105,23 +105,86 @@ export default function Index() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Data Structures Used</CardTitle>
+            <CardDescription>Core data structures powering the algorithms</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-primary mb-2">Monotonic Stack</h4>
+              <p className="text-sm text-muted-foreground">
+                A stack that maintains elements in either increasing or decreasing order. 
+                Used in Stock Span to efficiently track previous higher prices.
+              </p>
+            </div>
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-primary mb-2">Segment Tree</h4>
+              <p className="text-sm text-muted-foreground">
+                A binary tree that stores information about array segments. 
+                Enables fast range queries (min, max, sum) in O(log n) time.
+              </p>
+            </div>
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-primary mb-2">Deque (Double-ended Queue)</h4>
+              <p className="text-sm text-muted-foreground">
+                Allows insertion/deletion at both ends in O(1) time. 
+                Perfect for sliding window maximum/minimum problems.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Analysis Tools Explained</CardTitle>
+            <CardDescription>What each tool does for stock analysis</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-chart-2 mb-2">Stock Span</h4>
+              <p className="text-sm text-muted-foreground">
+                Calculates how many consecutive days before each day the stock price was 
+                less than or equal to current day's price. Useful for trend analysis.
+              </p>
+            </div>
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-chart-3 mb-2">Range Queries</h4>
+              <p className="text-sm text-muted-foreground">
+                Quickly finds minimum, maximum, or sum of stock prices within any date range. 
+                Essential for period-wise analysis and risk assessment.
+              </p>
+            </div>
+            <div className="p-4 border border-border rounded-lg">
+              <h4 className="font-semibold text-chart-4 mb-2">Sliding Window</h4>
+              <p className="text-sm text-muted-foreground">
+                Finds maximum or minimum price within a moving window of specified size. 
+                Helps identify short-term trends and volatility patterns.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>About This Demo</CardTitle>
-          <CardDescription>Technical implementation details</CardDescription>
+          <CardTitle>C Language Implementation</CardTitle>
+          <CardDescription>All algorithms are implemented in C for optimal performance</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none text-foreground">
             <p className="text-muted-foreground">
-              This demo showcases three fundamental algorithms for stock data analysis:
+              This demonstration uses C language implementations for all data structure operations:
             </p>
             <ul className="text-muted-foreground mt-2 space-y-1">
-              <li><strong>Stock Span Problem:</strong> Uses a monotonic stack to find the span of stock prices efficiently</li>
-              <li><strong>Range Queries:</strong> Implements segment trees for fast range minimum/maximum/sum queries</li>
-              <li><strong>Sliding Window:</strong> Employs double-ended queues for optimal sliding window maximum/minimum</li>
+              <li><strong>Memory Efficiency:</strong> Direct memory management with malloc/free</li>
+              <li><strong>Performance:</strong> Compiled C code runs faster than interpreted languages</li>
+              <li><strong>Low-level Control:</strong> Precise control over data structure implementation</li>
+              <li><strong>Industry Standard:</strong> C is widely used in high-frequency trading systems</li>
             </ul>
             <p className="text-muted-foreground mt-3">
-              All algorithms run in optimal time complexity and are demonstrated with interactive visualizations.
+              Upload your CSV data to see these algorithms process real stock information with C-level efficiency.
             </p>
           </div>
         </CardContent>
