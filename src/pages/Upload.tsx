@@ -54,20 +54,53 @@ export default function Upload() {
     if (lines.length < 2) return []
     
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-    const dateIndex = headers.indexOf('date')
-    const priceIndex = headers.indexOf('price')
-    const volumeIndex = headers.indexOf('volume')
     
-    if (dateIndex === -1 || priceIndex === -1 || volumeIndex === -1) {
+    // Fix column mapping according to user's rules:
+    // 1. "Day" column contains dates → rename to "Date"
+    // 2. "Date" column contains stock prices → move to "Price" 
+    // 3. "Price" column contains volume values → move to "Volume"
+    // 4. "Volume" column contains row counters → drop it
+    
+    const dayIndex = headers.indexOf('day')        // Contains actual dates
+    const dateIndex = headers.indexOf('date')      // Contains actual prices
+    const priceIndex = headers.indexOf('price')    // Contains actual volume
+    // Drop volume column (contains row counters)
+    
+    // Check if we have the required columns (day, date, price)
+    if (dayIndex === -1 || dateIndex === -1 || priceIndex === -1) {
+      // Fallback to standard mapping if corrected columns not found
+      const standardDateIndex = headers.indexOf('date')
+      const standardPriceIndex = headers.indexOf('price') 
+      const standardVolumeIndex = headers.indexOf('volume')
+      
+      if (standardDateIndex !== -1 && standardPriceIndex !== -1 && standardVolumeIndex !== -1) {
+        return lines.slice(1).map(line => {
+          const values = line.split(',')
+          return {
+            date: values[standardDateIndex]?.trim(),
+            price: parseFloat(values[standardPriceIndex]?.trim()),
+            volume: parseInt(values[standardVolumeIndex]?.trim())
+          }
+        }).filter(item => item.date && !isNaN(item.price) && !isNaN(item.volume))
+      }
       return []
     }
     
     return lines.slice(1).map(line => {
       const values = line.split(',')
+      const dateValue = values[dayIndex]?.trim()    // Actual date from "Day" column
+      const priceValue = values[dateIndex]?.trim()  // Actual price from "Date" column  
+      const volumeValue = values[priceIndex]?.trim() // Actual volume from "Price" column
+      
+      // Format the data properly
+      const formattedDate = dateValue // Keep as is if already in YYYY-MM-DD format
+      const formattedPrice = parseFloat(priceValue)
+      const formattedVolume = parseInt(volumeValue)
+      
       return {
-        date: values[dateIndex]?.trim(),
-        price: parseFloat(values[priceIndex]?.trim()),
-        volume: parseInt(values[volumeIndex]?.trim())
+        date: formattedDate,
+        price: parseFloat(formattedPrice.toFixed(2)), // 2 decimal places
+        volume: formattedVolume // Integer
       }
     }).filter(item => item.date && !isNaN(item.price) && !isNaN(item.volume))
   }
