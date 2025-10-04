@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Upload as UploadIcon, FileText, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,12 +11,14 @@ import { ChartArea } from "@/components/ChartArea"
 import { DataTable } from "@/components/DataTable"
 import { useData } from "@/contexts/DataContext"
 import { toast } from "@/hooks/use-toast"
+import { supabase } from "@/integrations/supabase/client"
 
 export default function Upload() {
   const [csvData, setCsvData] = useState("")
   const [fileName, setFileName] = useState("")
   const [localProcessedData, setLocalProcessedData] = useState<any[]>([])
   const [isProcessed, setIsProcessed] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const { setStockData, setIsDataLoaded, stockData } = useData()
 
   const sampleData = [
@@ -105,7 +107,41 @@ export default function Upload() {
     }).filter(item => item.date && !isNaN(item.price) && !isNaN(item.volume))
   }
 
-  const handleProcessData = () => {
+  const saveToDatabase = async (data: any[], source: 'upload' | 'manual') => {
+    setIsSaving(true)
+    try {
+      // Prepare data for insertion
+      const stockRecords = data.map(item => ({
+        symbol: 'DEMO', // Default symbol for demo data
+        date: item.date,
+        price: item.price,
+        volume: item.volume,
+        source: source
+      }))
+
+      const { error } = await (supabase as any)
+        .from('stock_data')
+        .upsert(stockRecords, { onConflict: 'symbol,date' })
+
+      if (error) throw error
+
+      toast({
+        title: "Data saved!",
+        description: `${data.length} rows saved to database successfully.`
+      })
+    } catch (error) {
+      console.error('Error saving to database:', error)
+      toast({
+        title: "Save failed",
+        description: "Could not save data to database. Data is still available in this session.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleProcessData = async () => {
     if (csvData.trim()) {
       const parsed = parseCSVData(csvData)
       if (parsed.length > 0) {
@@ -113,6 +149,10 @@ export default function Upload() {
         setStockData(parsed)
         setIsDataLoaded(true)
         setIsProcessed(true)
+        
+        // Save to database
+        await saveToDatabase(parsed, fileName ? 'upload' : 'manual')
+        
         toast({
           title: "Data processed successfully!",
           description: `${parsed.length} rows of stock data are now available for analysis.`
@@ -137,6 +177,35 @@ export default function Upload() {
     }
   }
 
+  // Load existing data from database on mount
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        const { data, error } = await (supabase as any)
+          .from('stock_data')
+          .select('date, price, volume')
+          .order('date', { ascending: true })
+          .limit(100)
+
+        if (error) throw error
+
+        if (data && data.length > 0) {
+          const formattedData = data.map((item: any) => ({
+            date: item.date,
+            price: parseFloat(item.price as any),
+            volume: item.volume
+          }))
+          setStockData(formattedData)
+          setIsDataLoaded(true)
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+      }
+    }
+
+    loadExistingData()
+  }, [setStockData, setIsDataLoaded])
+
   return (
     <div className="space-y-6">
       <div>
@@ -149,7 +218,7 @@ export default function Upload() {
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Demo mode: Using sample data for algorithm demonstrations. Real file processing would require backend integration.
+          Upload stock data to save it to the database for persistent storage and analysis across all algorithm pages.
         </AlertDescription>
       </Alert>
 
@@ -189,15 +258,17 @@ export default function Upload() {
               <Button 
                 className="w-full max-w-sm" 
                 onClick={handleProcessData}
-                disabled={!fileName && !csvData.trim()}
+                disabled={(!fileName && !csvData.trim()) || isSaving}
               >
-                {isProcessed ? (
+                {isSaving ? (
+                  "Saving..."
+                ) : isProcessed ? (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Data Processed
+                    Data Processed & Saved
                   </>
                 ) : (
-                  "Process Data"
+                  "Process & Save Data"
                 )}
               </Button>
             </CardContent>
@@ -225,15 +296,17 @@ export default function Upload() {
               </div>
               <Button 
                 onClick={handleProcessData}
-                disabled={!csvData.trim()}
+                disabled={!csvData.trim() || isSaving}
               >
-                {isProcessed ? (
+                {isSaving ? (
+                  "Saving..."
+                ) : isProcessed ? (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Data Processed
+                    Data Processed & Saved
                   </>
                 ) : (
-                  "Process Data"
+                  "Process & Save Data"
                 )}
               </Button>
             </CardContent>
